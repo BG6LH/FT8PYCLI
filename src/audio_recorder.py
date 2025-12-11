@@ -494,10 +494,13 @@ class AudioRecorder:
                         # 从ALSA设备读取数据
                         data = self.stream.stdout.read(CHUNK * 2)  # 16位采样，每个样本2字节
                         if not data:
+                            logger.warning("ALSA设备读取返回空数据")
                             break
                     else:
                         # 从PyAudio设备读取数据
+                        logger.debug(f"尝试读取 {CHUNK} 帧...")
                         data = self.stream.read(CHUNK, exception_on_overflow=False)
+                        logger.debug(f"读取成功")
                         
                     frames.append(data)
                     frame_count += 1

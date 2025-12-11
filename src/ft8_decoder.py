@@ -50,6 +50,8 @@ class FT8Decoder:
         # 首先检查当前项目目录
         current_dir = os.path.dirname(os.path.abspath(__file__))
         search_paths = [
+            # 在当前目录查找 (src/ft8.py)
+            os.path.join(current_dir, "ft8.py"),
             # 在项目内部查找
             os.path.join(current_dir, "..", "ft8decoder", "ref", "ft8.py"),
             # 如果项目在wsjtx-2.7.0目录下

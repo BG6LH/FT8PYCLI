@@ -748,6 +748,7 @@ def main():
     parser.add_argument("-d", "--device", help="指定音频设备ID进行实时解码")
     parser.add_argument("-v", "--verbose", action="store_true", help="详细日志输出")
     parser.add_argument("--version", action="version", version="FT8PYCLI v1.0.0")
+    parser.add_argument("-l", "--list", action="store_true", help="列出音频设备并退出")
     
     args = parser.parse_args()
     

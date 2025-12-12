@@ -478,6 +478,29 @@ class AudioRecorder:
             record_start = time.time()
             record_end_time = record_start + RECORD_SECONDS
             
+            # 关键修复：清空缓冲区，确保读取的是最新的音频数据
+            # 这里的sleep是为了让清空操作生效，并确保我们刚好对齐到毫秒
+            if self.active_device.get("is_alsa", False):
+                # ALSA设备无法直接flush，只能通过读取并丢弃来清空
+                # 读取过去 2秒 的数据量来清空缓冲区
+                try:
+                    junk_frames = int(RATE * 2) 
+                    self.stream.stdout.read(junk_frames * 2) # 16bit = 2 bytes
+                except:
+                    pass
+            else:
+                # PyAudio设备支持 drop_stream
+                try:
+                    # 读取并丢弃所有积压的数据
+                    while self.stream.get_read_available() > 0:
+                        self.stream.read(self.stream.get_read_available(), exception_on_overflow=False)
+                except Exception as e:
+                    pass
+
+            # 重新校准开始时间
+            record_start = time.time()
+            record_end_time = record_start + RECORD_SECONDS
+            
             # 录制音频
             while time.time() < record_end_time and frame_count < total_frames:
                 if self.stop_event.is_set() or not self.recording:

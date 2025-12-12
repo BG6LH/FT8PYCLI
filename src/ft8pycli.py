@@ -189,7 +189,7 @@ class FT8PYCLI:
         # 停止录制
         self.recorder.stop()
         
-        # 等待解码线程结束
+        # 等待解码线程结束（不再提交新任务）
         if self.decode_thread and self.decode_thread.is_alive():
             self.decode_thread.join(timeout=2)
             

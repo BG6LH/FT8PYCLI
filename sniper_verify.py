@@ -135,8 +135,9 @@ def run_decoder_on_file(filename):
         messages = decoder.msgs
         
         print(f"\n--- Decoding Results ({len(messages)} messages) ---")
-        for msg in messages:
-            print(msg)
+        for m in messages:
+            # Decode object has .msg attribute (text) and .snr attribute
+            print(f"Time: {m.decode_time:.2f}s | SNR: {m.snr} | Freq: {m.hza}Hz | Msg: {m.msg}")
             
     except Exception as e:
         logger.error(f"Decoder error: {e}")

@@ -194,7 +194,7 @@ def crc_python(msg, div, code=None):
     return msg[-len(code):]
 
 def crc(msg, div):
-    if True:
+    if libldpc != None:
         return crc_c(msg)
     else:
         return crc_python(msg, div)

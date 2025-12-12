@@ -1845,11 +1845,11 @@ class FT8:
     def readwav(self, chan):
         z = self.wav.readframes(8192)
         if self.wav_width == 1:
-            zz = numpy.fromstring(z, numpy.int8)
+            zz = numpy.frombuffer(z, numpy.int8)
         elif self.wav_width == 2:
             if (len(z) % 2) == 1:
                 return numpy.array([])
-            zz = numpy.fromstring(z, numpy.int16)
+            zz = numpy.frombuffer(z, numpy.int16)
         else:
             sys.stderr.write("oops wave_width %d" % (self.wav_width))
             sys.exit(1)

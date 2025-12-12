@@ -137,6 +137,8 @@ def run_decoder_on_file(filename):
         print(f"\n--- Decoding Results ({len(messages)} messages) ---")
         for msg in messages:
             print(msg)
+            
+    except Exception as e:
         logger.error(f"Decoder error: {e}")
         import traceback
         traceback.print_exc()

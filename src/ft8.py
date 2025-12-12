@@ -1761,8 +1761,8 @@ class FT8:
         self.forked = False
         self.ldpc_calls = 0
 
-        #self.jrate = 12000 // 2 # sample rate for processing (FFT &c)
-        #self.jblock = 1920 // 2 # samples per symbol
+        self.jrate = 12000 // 2 # sample rate for processing (FFT &c)
+        self.jblock = 1920 // 2 # samples per symbol
 
         weakutil.init_freq_from_fft(32)
         weakutil.init_freq_from_fft(1920)

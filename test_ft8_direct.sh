@@ -8,11 +8,12 @@ echo ""
 
 cd /home/pi/FT8PYCLI
 
-# 找最新的录音
-RECORDING=$(ls -t recordings/recording_*.wav 2>/dev/null | head -1)
+# 找最新的重采样文件（这些才是 12000Hz 的）
+RECORDING=$(ls -t temp/temp_*_resampled.wav 2>/dev/null | head -1)
 
 if [ -z "$RECORDING" ]; then
-    echo "❌ 没有录音文件"
+    echo "❌ 没有重采样文件"
+    echo "   请先运行主程序生成临时文件"
     exit 1
 fi
 

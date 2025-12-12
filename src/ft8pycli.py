@@ -820,6 +820,7 @@ def main():
         # 4. 默认交互模式
         else:
             ft8pycli.start()
+
             
     except KeyboardInterrupt:
         print("\n收到中断信号，正在退出...")

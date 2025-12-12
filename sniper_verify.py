@@ -113,56 +113,23 @@ def save_wav(filename, samples, rate):
     except Exception as e:
         logger.error(f"Error saving wav: {e}")
 
-def run_decoder(samples, rate):
-    """Run the existing Python FT8 decoder on samples."""
-    # The pure python decoder expects 12000Hz usually
-    # But ft8.py's extract() handles resampling natively via decimate logic if needed,
-    # or expects 12000. Let's check.
-    # Actually src/ft8.py extract() usually expects ~12000 samples/sec for the symbols to align.
+    # Run existing decoder
+    # Since we don't have a direct 'decode(samples)' method easily accessible without re-implementing 
+    # the whole FT8 class logic, we will save the temp file (which we did) and let FT8.gowav read it.
     
-    logger.info("Running Decoder...")
-    
-    # We might need to resample to 12000 if input is 44100/48000
-    if rate != 12000:
-        logger.info(f"Resampling from {rate} to 12000...")
-        num_samples = int(len(samples) * 12000 / rate)
-        samples = signal.resample(samples, num_samples)
-        rate = 12000
-        
-    # FT8 decoder expects int16 buffer or float?
-    # extract() takes 'samples'. Let's see how it uses them.
-    # It usually does FFT.
-    
-    # Try using the Decoder class logic
-    decoder = FT8()
-    
-    # We need to simulate the 'extract' behavior
-    # Assuming samples is float array
+    # We need to pass the FILENAME to gowav, not the samples.
+    # The current run_decoder function takes samples, but we already saved them to 'out_name' in main().
+    # Let's change the logic to use the saved file.
+    pass
+
+def run_decoder_on_file(filename):
+    """Run the existing Python FT8 decoder on a file."""
+    logger.info(f"Running Decoder on {filename}...")
     
     try:
-        # This calls the full search
-        # Note: We need to adapt this because valid_candidates etc might be empty if we filter too much?
-        # No, if we filter, the FFT just shows silence elsewhere.
-        
-        # We need to convert back to what ft8.py expects (usually raw bytes or Audio object?)
-        # Actually ft8.py's main decoder loop often works on a list/array of floats.
-        
-        # Let's call the low-level extract function if accessible, or wrap it.
-        # Looking at ft8.py, we might simply call:
-        # messages = decoder.decode(samples, rate) # Hypothetical
-        
-        # ft8.py is a bit script-like. Let's try to reuse the 'Audio' class wrapper or call extract directly.
-        # But wait, ft8.py doesn't have a clean 'decode(samples)' API exposed easily.
-        # It has 'extract(s, ...)'
-        
-        # Let's define a minimal processing flow using peak finding
-        # For now, let's use the simplest entry point:
-        
-        messages = ft8.extract(samples, 0, len(samples), 0) # 0=log_level
-        
-        print(f"\n--- Decoding Results ({len(messages)} messages) ---")
-        for msg in messages:
-            print(msg)
+        decoder = FT8()
+        # gowav reads the file itself
+        decoder.gowav(filename, 0) # 0 = channel
             
     except Exception as e:
         logger.error(f"Decoder error: {e}")
@@ -192,11 +159,18 @@ def main():
     if args.save_filtered:
         out_name = args.wav_file.replace(".wav", f"_filtered_{args.freq}Hz.wav")
         save_wav(out_name, filtered_samples, rate)
-    
-    # 4. Decode
-    # Compare: Full Band vs Filtered?
-    # For prototype, just decode Filtered.
-    run_decoder(filtered_samples, rate)
+        
+        # 4. Decode
+        run_decoder_on_file(out_name)
+    else:
+        # If not saving, we must save temporarily to decode
+        temp_name = "temp_sniper_decode.wav"
+        save_wav(temp_name, filtered_samples, rate)
+        run_decoder_on_file(temp_name)
+        try:
+            os.remove(temp_name)
+        except:
+            pass
 
 if __name__ == "__main__":
     main()

@@ -32,6 +32,8 @@ recordings/
 .vscode/
 *.swp
 *.swo
+/prompts/
+/.agent/
 
 # Environment
 .env

@@ -155,6 +155,13 @@ def main():
     # 2. Bandpass Filter
     filtered_samples = apply_bandpass_filter(samples, rate, args.freq, args.bw)
     
+    # 2.5 Resample to 12000Hz (Required by FT8 decoder)
+    if rate != 12000:
+        logger.info(f"Resampling from {rate} to 12000Hz for decoder compatibility...")
+        num_samples = int(len(filtered_samples) * 12000 / rate)
+        filtered_samples = signal.resample(filtered_samples, num_samples)
+        rate = 12000
+    
     # 3. Save if requested
     if args.save_filtered:
         out_name = args.wav_file.replace(".wav", f"_filtered_{args.freq}Hz.wav")

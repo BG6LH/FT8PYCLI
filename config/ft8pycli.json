@@ -12,7 +12,7 @@
     "threshold": -26
   },
   "recording": {
-    "save_audio": false,
+    "save_audio": true,
     "output_dir": "recordings",
     "record_seconds": 13.5,
     "advance_seconds": 0.2

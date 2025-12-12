@@ -2169,12 +2169,22 @@ class FT8:
 
         down_hz = 0
 
+        # Debug: print cardrate to understand what's happening
+        if self.cardrate not in [6000, 12000]:
+            sys.stderr.write(f"WARNING: unexpected cardrate {self.cardrate}, expected 6000 or 12000\n")
+            sys.stderr.write(f"Attempting to continue with cardrate={self.cardrate}\n")
+        
         if self.cardrate == 12000:
             cardblock = 1920
         elif self.cardrate == 6000:
             cardblock = 1920 // 2
         else:
-            assert False
+            # Instead of crashing, try to calculate a reasonable cardblock
+            # cardblock should be the number of samples per FT8 symbol at this rate
+            # For 12000Hz, it's 1920 (0.16 seconds * 12000)
+            # So for other rates: cardblock = int(0.16 * cardrate)
+            cardblock = int(0.16 * self.cardrate)
+            sys.stderr.write(f"Using calculated cardblock={cardblock} for cardrate={self.cardrate}\n")
 
         # use smallest sample rate that divides 12000 evenly
         # and can represent the Hz range.

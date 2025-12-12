@@ -719,7 +719,26 @@ def load_config(config_file: str) -> Dict[str, Any]:
         try:
             with open(config_file, 'r') as f:
                 loaded_config = json.load(f)
+                
+                # 处理嵌套配置 (兼容 config.example.json 格式)
+                if "audio" in loaded_config:
+                    if "device" in loaded_config["audio"]:
+                        # extract "2,0" -> 2 (assume first is ID)
+                        dev_str = str(loaded_config["audio"]["device"])
+                        if "," in dev_str:
+                            config["device"] = int(dev_str.split(",")[0])
+                        else:
+                            config["device"] = int(dev_str)
+                            
+                if "recording" in loaded_config:
+                    if "save_audio" in loaded_config["recording"]:
+                        config["save_recordings"] = loaded_config["recording"]["save_audio"]
+                    if "output_dir" in loaded_config["recording"]:
+                        config["output_dir"] = loaded_config["recording"]["output_dir"]
+                        
+                # 处理扁平配置 (覆盖嵌套配置)
                 config.update(loaded_config)
+                
             logger.info(f"已加载配置文件: {config_file}")
         except Exception as e:
             logger.error(f"加载配置文件出错: {e}")
@@ -752,14 +771,11 @@ def main():
     
     args = parser.parse_args()
     
-    # 加载配置
+    # 优先加载命令行指定的配置，否则加载默认配置
     config_file = args.config or os.path.join(os.path.dirname(os.path.abspath(__file__)), "../config/ft8pycli.json")
     config = load_config(config_file)
     
-    # 临时设置为DEBUG级别来诊断设备检测问题
-    config["log_level"] = "DEBUG"
-    
-    # 更新配置
+    # 命令行参数覆盖配置文件
     if args.verbose:
         config["log_level"] = "DEBUG"
         
@@ -770,29 +786,48 @@ def main():
     ft8pycli = FT8PYCLI(config)
     
     try:
-        # 如果指定了文件，直接解码
+        # 1. 命令行文件解码
         if args.file:
             ft8pycli._decode_file(args.file)
-        # 如果指定了设备，直接开始实时解码
+            
+        # 2. 命令行设备解码
         elif args.device:
             try:
                 device_id = int(args.device)
                 ft8pycli._start_live_decode(device_id)
-                
                 # 等待用户中断
                 print("按Ctrl+C停止解码...")
                 while ft8pycli.running:
                     time.sleep(0.1)
             except ValueError:
                 print(f"错误: 设备ID必须是整数，而不是 '{args.device}'")
+                
+        # 3. 配置文件设备解码 (自动启动)
+        elif config.get("device") is not None:
+            try:
+                device_id = int(config["device"])
+                print(f"从配置文件自动加载设备: {device_id}")
+                ft8pycli._start_live_decode(device_id)
+                # 等待用户中断
+                print("按Ctrl+C停止解码...")
+                while ft8pycli.running:
+                    time.sleep(0.1)
+            except Exception as e:
+                 logger.error(f"自动启动失败: {e}")
+                 # 失败后降级到交互模式
+                 ft8pycli.start()
+                 
+        # 4. 默认交互模式
         else:
-            # 否则启动交互模式
             ft8pycli.start()
+            
     except KeyboardInterrupt:
         print("\n收到中断信号，正在退出...")
+    except Exception as e:
+        logger.error(f"运行时出错: {e}")
     finally:
-        # 保存配置
-        save_config(config, config_file)
+        # 保存配置 (如果需要持久化运行时的修改)
+        # save_config(config, config_file) 
         
         # 停止FT8PYCLI
         ft8pycli.stop()

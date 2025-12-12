@@ -720,7 +720,10 @@ def load_config(config_file: str) -> Dict[str, Any]:
             with open(config_file, 'r') as f:
                 loaded_config = json.load(f)
                 
-                # 处理嵌套配置 (兼容 config.example.json 格式)
+                # 1. 首先加载所有扁平配置
+                config.update(loaded_config)
+                
+                # 2. 处理嵌套配置 (优先级更高，覆盖扁平配置)
                 if "audio" in loaded_config:
                     if "device" in loaded_config["audio"]:
                         # extract "2,0" -> 2 (assume first is ID)
@@ -732,12 +735,10 @@ def load_config(config_file: str) -> Dict[str, Any]:
                             
                 if "recording" in loaded_config:
                     if "save_audio" in loaded_config["recording"]:
+                        # 将 recording.save_audio 映射到 save_recordings
                         config["save_recordings"] = loaded_config["recording"]["save_audio"]
                     if "output_dir" in loaded_config["recording"]:
                         config["output_dir"] = loaded_config["recording"]["output_dir"]
-                        
-                # 处理扁平配置 (覆盖嵌套配置)
-                config.update(loaded_config)
                 
             logger.info(f"已加载配置文件: {config_file}")
         except Exception as e:

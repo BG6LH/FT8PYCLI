@@ -1006,6 +1006,9 @@ def gauss_jordan(m, which):
     if m.dtype != numpy.int32:
         m = m.astype(numpy.int32)
 
+    if libldpc == None:
+        return python_gauss_jordan(m, which)
+
     rows = m.shape[1]
     int174 = ctypes.c_int * (m.shape[0])
 
@@ -1027,7 +1030,7 @@ def gauss_jordan(m, which):
     libldpc.gauss_jordan(rows, cols, xb, xwhich, ctypes.byref(ok))
 
     if ok.value != 1:
-        sys.stderr.write("C gauss-jordan: not reducible %d\n" % (ok.value))
+        #sys.stderr.write("C gauss-jordan: not reducible %d\n" % (ok.value))
         return numpy.array([])
 
     for i in range(0, len(which)):

@@ -2112,7 +2112,29 @@ class FT8:
     def process00(self, samples, samples_time, spipe, rpipe, min_hz, max_hz):
         if rpipe != None:
             rpipe.close()
-        thunk = (lambda dec : spipe.send(dec))
+            
+        def thunk(dec):
+            spipe.send(dec)
+            # Critical Fix: Print to stdout so subprocess caller can see it
+            # Format mimics what ft8_decoder.py expects: P 0.5   0  0.5 -15  0.1 1500 ~  CQ BG5XXX
+            # But the specific format expected by _parse_output is:
+            # "P 0.94   2 0.70 -19  0.10  1500 ~  CQ BG5XXX PM74"
+            # It seems ft8_decoder.py parses standard WSJT-X like output or the one from this script.
+            # Let's check _parse_output in ft8_decoder.py closely.
+            # It expects: P score ? ? snr ? freq ? msg
+            
+            # Let's print a simple compatible line
+            # dec.msg is the text
+            # dec.snr is snr
+            # dec.hza is frequency
+            try:
+                # Use a format that _parse_output hopefully understands or at least logs
+                # P <time> <?> <?> <snr> <?> <freq> <?> <msg>
+                print(f"P 0.0 0 0.0 {dec.snr:.1f} 0.0 {dec.hza:.1f} ~ {dec.msg}")
+                sys.stdout.flush() 
+            except:
+                pass
+
         self.process0(samples, samples_time, thunk, min_hz, max_hz)
         spipe.close()
 

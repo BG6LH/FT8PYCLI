@@ -130,8 +130,13 @@ def run_decoder_on_file(filename):
         decoder = FT8()
         # gowav reads the file itself
         decoder.gowav(filename, 0) # 0 = channel
-            
-    except Exception as e:
+        
+        # New Logic: gowav doesn't return messages, it populates decoder.msgs
+        messages = decoder.msgs
+        
+        print(f"\n--- Decoding Results ({len(messages)} messages) ---")
+        for msg in messages:
+            print(msg)
         logger.error(f"Decoder error: {e}")
         import traceback
         traceback.print_exc()

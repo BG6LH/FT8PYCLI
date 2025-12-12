@@ -787,7 +787,10 @@ def ldpc_check(codeword):
 
 libldpc = None
 try:
-    libldpc = ctypes.cdll.LoadLibrary("libldpc/libldpc.so")
+    # 使用相对于 ft8.py 的路径
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    libldpc_path = os.path.join(script_dir, "libldpc", "libldpc.so")
+    libldpc = ctypes.cdll.LoadLibrary(libldpc_path)
 except:
     libldpc = None
     sys.stderr.write("ft8: using the Python LDPC decoder, not the C decoder.\n")

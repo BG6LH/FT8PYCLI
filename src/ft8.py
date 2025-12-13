@@ -1760,6 +1760,11 @@ class FT8:
         self.hashes10 = { } # non-standard calls indexed by 10-bit hash
         self.forked = False
         self.ldpc_calls = 0
+        
+        # Noise bandwidth for SNR calculation
+        # Default 2500Hz matches WSJT-X
+        # Set to narrower bandwidth (e.g. 100Hz) for Sniper Mode
+        self.noise_bandwidth = 2500.0
 
         self.jrate = 12000 // 2 # sample rate for processing (FFT &c)
         self.jblock = 1920 // 2 # samples per symbol
@@ -3242,7 +3247,9 @@ class FT8:
         rawsnr -= 1 # turn (s+n)/n into s/n
         if rawsnr < 0.1:
             rawsnr = 0.1
-        rawsnr /= (2500.0 / 2.7) # 2.7 hz noise b/w -> 2500 hz b/w
+        # Use configurable noise bandwidth instead of hardcoded 2500Hz
+        # This allows Sniper Mode to report correct SNR with narrowband filtering
+        rawsnr /= (self.noise_bandwidth / 2.7) # 2.7 hz noise b/w -> actual noise b/w
         snr = 10 * math.log10(rawsnr)
         snr += 3
         return snr

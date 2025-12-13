@@ -128,6 +128,12 @@ def run_decoder_on_file(filename):
     
     try:
         decoder = FT8()
+        
+        # Set noise bandwidth to match our filter bandwidth
+        # This allows SNR calculation to reflect the narrowband advantage
+        # Theoretical improvement: 10*log10(2500/100) = 14dB
+        decoder.noise_bandwidth = 100.0  # Sniper Mode bandwidth
+        
         # gowav reads the file itself
         decoder.gowav(filename, 0) # 0 = channel
         
